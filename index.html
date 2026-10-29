@@ -6,6 +6,15 @@
 <title>Control Proveedores · MDA Inmobiliaria</title>
 <link rel="icon" type="image/png" href="assets/logo-mda-blue.png">
 <script src="config.js"></script>
+<script>
+// Tema de color: se recuerda por usuario (localStorage). Se aplica antes de pintar para evitar parpadeo.
+(function(){
+  var t=null;
+  try{ t=localStorage.getItem('mda-theme:last'); }catch(e){}
+  if(t!=='dark'&&t!=='light') t=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';
+  document.documentElement.setAttribute('data-theme',t);
+})();
+</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 :root {
@@ -16,12 +25,41 @@
   --gray-50:#F8FAFC; --gray-100:#F1F5F9; --gray-200:#E2E8F0; --gray-400:#94A3B8;
   --gray-500:#64748B; --gray-700:#334155; --text:#0B1F44; --text2:#475569;
   --white:#FFFFFF; --border:#E2E8F0;
+  --bg:#F1F4FA; --surface:#FFFFFF; --overlay-light:rgba(255,255,255,.7);
+  --btn-primary:#013186; --btn-primary-hover:#012468; --focus-ring:rgba(1,49,134,.14);
+  --info-bg:#EAF0FA; --info-bd:#C9D6EE; --info-tx:#013186; --info-tx2:#012364;
+  --warn-bg:#FFFBEB; --warn-bg2:#FFFDE7; --warn-bg3:#FEF3C7; --warn-bd:#FDE68A; --warn-tx:#92400E; --warn-tx2:#78350F;
+  --ok-bg:#F0FDF4; --ok-bg2:#D1FAE5; --ok-bg3:#DCFCE7; --ok-bd:#BBF7D0; --ok-tx:#065F46;
+  --err-bg:#FEF2F2; --err-bg2:#FEE2E2; --err-bd:#FECACA; --err-tx:#991B1B;
+  --usd-bg:#DBEAFE; --usd-tx:#1E40AF;
   --r:10px; --rs:6px;
   --sh:0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.05);
   --sh-lg:0 8px 32px rgba(0,0,0,.12);
 }
+/* TEMA OSCURO — mantiene el azul corporativo MDA (#013186) en sidebar, botones y acentos */
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0B1220; --surface:#121C2F; --overlay-light:rgba(11,18,32,.75);
+  --gray-50:#172338; --gray-100:#1B2A42; --gray-200:#26364F; --gray-400:#7F8DA6;
+  --gray-500:#98A6BF; --gray-700:#C8D2E3; --text:#E8EEF8; --text2:#B4C0D4; --border:#26364F;
+  --navy:#DCE6F8; --accent:#7FA3EC; --accent-dim:#9BB7F0;
+  --brand-light:#15264A; --brand-soft:#2B4475;
+  --btn-primary:#013186; --btn-primary-hover:#1A47A0; --focus-ring:rgba(127,163,236,.25);
+  --info-bg:#13254A; --info-bd:#2B4475; --info-tx:#A9C1F3; --info-tx2:#C9D8F7;
+  --warn-bg:#2A2110; --warn-bg2:#2E2412; --warn-bg3:#3A2C0F; --warn-bd:#5C4515; --warn-tx:#FBD38D; --warn-tx2:#FDE68A;
+  --ok-bg:#0F2A20; --ok-bg2:#123826; --ok-bg3:#123826; --ok-bd:#1E5A3F; --ok-tx:#86EFAC;
+  --err-bg:#2D1518; --err-bg2:#3A1A1E; --err-bd:#6B2A30; --err-tx:#FCA5A5;
+  --usd-bg:#15264A; --usd-tx:#A9C1F3;
+  --sh:0 1px 3px rgba(0,0,0,.4),0 4px 16px rgba(0,0,0,.25);
+  --sh-lg:0 8px 32px rgba(0,0,0,.5);
+}
+.logo-dark-only{display:none}
+:root[data-theme="dark"] .logo-dark-only{display:inline-block}
+:root[data-theme="dark"] .logo-light-only{display:none}
+:root[data-theme="dark"] .btn-primary{box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+:root[data-theme="dark"] .sidebar{background:linear-gradient(180deg,var(--brand-dark) 0%,#010F2E 100%)}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',sans-serif;background:#F1F4FA;color:var(--text);min-height:100vh;font-size:14px}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);transition:background .2s,color .2s;min-height:100vh;font-size:14px}
 
 /* SIDEBAR */
 .sidebar{position:fixed;top:0;left:0;bottom:0;width:230px;background:linear-gradient(180deg,var(--brand) 0%,var(--brand-dark) 100%);display:flex;flex-direction:column;z-index:100}
@@ -44,15 +82,21 @@ body{font-family:'Inter',sans-serif;background:#F1F4FA;color:var(--text);min-hei
 
 /* MAIN */
 .main{margin-left:230px;min-height:100vh}
-.topbar{background:#fff;border-bottom:1px solid var(--border);box-shadow:inset 0 3px 0 var(--brand);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);box-shadow:inset 0 3px 0 var(--brand);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
 .topbar-title{font-size:16px;font-weight:700;color:var(--navy)}
 .topbar-actions{display:flex;align-items:center;gap:10px}
+#auth-bar{display:flex;align-items:center;gap:10px}
+/* SELECTOR DE TEMA */
+.theme-switch{display:inline-flex;background:var(--gray-100);border:1px solid var(--border);border-radius:99px;padding:3px;gap:2px}
+.theme-switch button{border:none;background:transparent;color:var(--gray-500);font-family:inherit;font-size:12px;font-weight:600;padding:5px 12px;border-radius:99px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.theme-switch button:hover{color:var(--text)}
+.theme-switch button[aria-pressed="true"]{background:var(--btn-primary);color:#fff;box-shadow:0 1px 4px rgba(1,49,134,.35)}
 .page{display:none;padding:28px}
 .page.active{display:block}
 
 /* STATS */
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
-.stat-card{background:#fff;border-radius:var(--r);padding:20px 22px;box-shadow:var(--sh);border-left:4px solid var(--accent)}
+.stat-card{background:var(--surface);border-radius:var(--r);padding:20px 22px;box-shadow:var(--sh);border-left:4px solid var(--accent)}
 .stat-card.gold{border-left-color:var(--gold)}
 .stat-card.green{border-left-color:var(--green)}
 .stat-card.red{border-left-color:var(--red)}
@@ -62,14 +106,14 @@ body{font-family:'Inter',sans-serif;background:#F1F4FA;color:var(--text);min-hei
 .stat-sub{font-size:11px;color:var(--gray-400)}
 
 /* CARDS */
-.card{background:#fff;border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;margin-bottom:20px}
+.card{background:var(--surface);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;margin-bottom:20px}
 .card-header{padding:16px 22px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
 .card-header h3{font-size:14px;font-weight:600;color:var(--navy)}
 .card-body{padding:20px 22px}
 
 /* BUTTONS */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--rs);font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer;border:none;transition:all .15s}
-.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent-dim)}
+.btn-primary{background:var(--btn-primary);color:#fff}.btn-primary:hover{background:var(--btn-primary-hover)}
 .btn-secondary{background:var(--gray-100);color:var(--gray-700);border:1px solid var(--border)}.btn-secondary:hover{background:var(--gray-200)}
 .btn-success{background:var(--green);color:#fff}
 .btn-danger{background:var(--red);color:#fff}
@@ -78,9 +122,9 @@ body{font-family:'Inter',sans-serif;background:#F1F4FA;color:var(--text);min-hei
 .btn-sm{padding:5px 10px;font-size:12px}
 
 /* TABLE */
-.table-wrap{background:#fff;border-radius:var(--r);box-shadow:var(--sh);overflow-x:auto;overflow-y:visible}
+.table-wrap{background:var(--surface);border-radius:var(--r);box-shadow:var(--sh);overflow-x:auto;overflow-y:visible}
 table{width:100%;border-collapse:collapse}
-thead th{background:var(--brand-light);padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--brand);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--brand-soft)}
+thead th{background:var(--brand-light);padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--brand-soft)}
 tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
 tbody tr:last-child{border-bottom:none}
 tbody tr:hover{background:var(--brand-light)}
@@ -92,17 +136,17 @@ tbody td strong{color:var(--text);font-weight:600}
 /* BADGES */
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
 .badge::before{content:'●';font-size:7px}
-.badge-aprobada{background:#D1FAE5;color:#065F46}
-.badge-ingresada{background:#F1F5F9;color:#475569}
-.badge-en-aprobacion{background:#FEF3C7;color:#92400E}
-.badge-rechazada{background:#FEE2E2;color:#991B1B}
+.badge-aprobada{background:var(--ok-bg2);color:var(--ok-tx)}
+.badge-ingresada{background:var(--gray-100);color:var(--text2)}
+.badge-en-aprobacion{background:var(--warn-bg3);color:var(--warn-tx)}
+.badge-rechazada{background:var(--err-bg2);color:var(--err-tx)}
 
 /* MODAL */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.open{display:flex}
-.modal{background:#fff;border-radius:14px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;box-shadow:var(--sh-lg)}
+.modal{background:var(--surface);border-radius:14px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;box-shadow:var(--sh-lg)}
 .modal-lg{max-width:900px}
-.modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:10;border-radius:14px 14px 0 0}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:10;border-radius:14px 14px 0 0}
 .modal-header h2{font-size:16px;font-weight:700;color:var(--navy)}
 .modal-close{background:none;border:none;cursor:pointer;font-size:20px;color:var(--gray-400);padding:4px}
 .modal-body{padding:24px}
@@ -113,8 +157,8 @@ tbody td strong{color:var(--text);font-weight:600}
 .form-full{grid-column:1/-1}
 .form-group{display:flex;flex-direction:column;gap:5px}
 .form-group label{font-size:12px;font-weight:600;color:var(--gray-700)}
-.form-group input,.form-group select,.form-group textarea{padding:9px 12px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13.5px;outline:none;transition:border-color .15s;color:var(--text);background:#fff}
-.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(1,49,134,.12)}
+.form-group input,.form-group select,.form-group textarea{padding:9px 12px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13.5px;outline:none;transition:border-color .15s;color:var(--text);background:var(--surface)}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--focus-ring)}
 .form-group input[readonly]{background:var(--gray-50);color:var(--gray-500);cursor:not-allowed}
 .sec-div{grid-column:1/-1;border-top:1px solid var(--border);padding-top:14px;margin-top:4px;font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px}
 
@@ -123,7 +167,7 @@ tbody td strong{color:var(--text);font-weight:600}
 .items-tbl th{background:var(--gray-50);padding:8px 10px;text-align:left;font-size:11px;font-weight:700;color:var(--gray-500);border:1px solid var(--border)}
 .items-tbl td{padding:7px 8px;border:1px solid var(--border);vertical-align:middle}
 .items-tbl input{border:none;width:100%;font-family:inherit;font-size:13px;padding:2px 4px;outline:none;background:transparent}
-.items-tbl input:focus{background:#EAF0FA;border-radius:4px}
+.items-tbl input:focus{background:var(--info-bg);border-radius:4px}
 
 /* TOTALS */
 .totals-box{margin-top:12px;background:var(--gray-50);border:1px solid var(--border);border-radius:var(--rs);padding:14px 16px}
@@ -141,27 +185,27 @@ tbody td strong{color:var(--text);font-weight:600}
 
 /* PDF IMPORT */
 .import-zone{border:2px dashed var(--border);border-radius:var(--r);padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--gray-50);position:relative}
-.import-zone:hover,.import-zone.drag-over{border-color:var(--accent);background:#EAF0FA}
+.import-zone:hover,.import-zone.drag-over{border-color:var(--accent);background:var(--info-bg)}
 .import-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
 .import-zone .zi{font-size:32px;margin-bottom:8px}
 .import-zone .zt{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:3px}
 .import-zone .zs{font-size:12px;color:var(--gray-400)}
-.imp-loading{display:none;align-items:center;gap:10px;background:#EAF0FA;border:1px solid #C9D6EE;border-radius:var(--rs);padding:12px 16px;margin-top:12px;font-size:13px;color:#013186}
+.imp-loading{display:none;align-items:center;gap:10px;background:var(--info-bg);border:1px solid var(--info-bd);border-radius:var(--rs);padding:12px 16px;margin-top:12px;font-size:13px;color:var(--info-tx)}
 .imp-loading.show{display:flex}
-.spinner{width:18px;height:18px;border:2px solid #C9D6EE;border-top-color:#013186;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+.spinner{width:18px;height:18px;border:2px solid var(--info-bd);border-top-color:var(--info-tx);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
-.imp-error{display:none;background:#FEF2F2;border:1px solid #FECACA;border-radius:var(--rs);padding:12px 16px;margin-top:12px;font-size:13px;color:#991B1B}
+.imp-error{display:none;background:var(--err-bg);border:1px solid var(--err-bd);border-radius:var(--rs);padding:12px 16px;margin-top:12px;font-size:13px;color:var(--err-tx)}
 .imp-error.show{display:block}
-.imp-preview{display:none;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:var(--rs);padding:14px 16px;margin-top:14px}
+.imp-preview{display:none;background:var(--ok-bg);border:1px solid var(--ok-bd);border-radius:var(--rs);padding:14px 16px;margin-top:14px}
 .imp-preview.show{display:block}
-.imp-preview h4{font-size:12px;font-weight:700;color:#065F46;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
+.imp-preview h4{font-size:12px;font-weight:700;color:var(--ok-tx);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
 .prev-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .prev-field{font-size:12px}.prev-field .pl{color:var(--gray-500);font-weight:600}
 .prev-field-edit{font-size:12px;display:flex;flex-direction:column;gap:3px}
 .prev-field-edit label{color:var(--gray-500);font-weight:600;font-size:11px}
-.prev-field-edit input{border:1px solid #BBF7D0;border-radius:5px;padding:6px 8px;font-family:inherit;font-size:12.5px;background:#fff;color:var(--navy);outline:none;width:100%;box-sizing:border-box}
+.prev-field-edit input{border:1px solid var(--ok-bd);border-radius:5px;padding:6px 8px;font-family:inherit;font-size:12.5px;background:var(--surface);color:var(--navy);outline:none;width:100%;box-sizing:border-box}
 .prev-field-edit input:focus{border-color:var(--accent)}
-.prev-field-edit input.missing{border-color:var(--gold);background:#FFFBEB}
+.prev-field-edit input.missing{border-color:var(--gold);background:var(--warn-bg)}
 
 /* DETAIL FIELDS */
 .detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
@@ -178,13 +222,13 @@ tbody td strong{color:var(--text);font-weight:600}
 
 /* SEARCH */
 .search-row{display:flex;gap:10px;align-items:center}
-.search-input{flex:1;padding:9px 14px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13.5px;outline:none;transition:border-color .15s;color:var(--text)}
+.search-input{flex:1;padding:9px 14px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13.5px;outline:none;transition:border-color .15s;color:var(--text);background:var(--surface)}
 .search-input:focus{border-color:var(--accent)}
-.search-sel{padding:9px 12px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13.5px;outline:none;background:#fff;color:var(--text);cursor:pointer}
+.search-sel{padding:9px 12px;border:1px solid var(--border);border-radius:var(--rs);font-family:inherit;font-size:13.5px;outline:none;background:var(--surface);color:var(--text);cursor:pointer}
 
 /* CHART */
 .chart-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
-.chart-card{background:#fff;border-radius:var(--r);box-shadow:var(--sh);padding:20px 22px}
+.chart-card{background:var(--surface);border-radius:var(--r);box-shadow:var(--sh);padding:20px 22px}
 .chart-card h3{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:14px}
 .bar-chart{display:flex;flex-direction:column;gap:10px}
 .bar-row{display:grid;grid-template-columns:130px 1fr 90px;align-items:center;gap:10px;font-size:12px}
@@ -193,7 +237,7 @@ tbody td strong{color:var(--text);font-weight:600}
 .bar-val{text-align:right;font-weight:600;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gray-500)}
 
 /* NOTIFICATION */
-.notif{position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:14px 20px;border-radius:var(--r);box-shadow:var(--sh-lg);font-size:13.5px;font-weight:500;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;max-width:380px;display:flex;align-items:center;gap:10px}
+.notif{position:fixed;bottom:24px;right:24px;background:var(--brand-dark);color:#fff;padding:14px 20px;border-radius:var(--r);box-shadow:var(--sh-lg);font-size:13.5px;font-weight:500;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;max-width:380px;display:flex;align-items:center;gap:10px}
 .notif.show{transform:translateY(0);opacity:1}
 .notif.success{border-left:4px solid var(--green)}
 .notif.error{border-left:4px solid var(--red)}
@@ -201,11 +245,11 @@ tbody td strong{color:var(--text);font-weight:600}
 
 /* ALERT BANNER */
 .alert-banner{border-radius:var(--rs);padding:12px 16px;margin-bottom:14px;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.alert-warn{background:#FFFBEB;border:1px solid #FDE68A;color:#92400E}
-.alert-info{background:#EAF0FA;border:1px solid #C9D6EE;color:#013186}
+.alert-warn{background:var(--warn-bg);border:1px solid var(--warn-bd);color:var(--warn-tx)}
+.alert-info{background:var(--info-bg);border:1px solid var(--info-bd);color:var(--info-tx)}
 
 /* OC SALDO CARD */
-.oc-saldo-card{background:#fff;border-radius:var(--r);box-shadow:var(--sh);padding:16px 20px;margin-bottom:12px;display:flex;align-items:center;gap:16px}
+.oc-saldo-card{background:var(--surface);border-radius:var(--r);box-shadow:var(--sh);padding:16px 20px;margin-bottom:12px;display:flex;align-items:center;gap:16px}
 .oc-saldo-left{flex:1}
 .oc-saldo-num{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:2px}
 .oc-saldo-prov{font-size:14px;font-weight:600;color:var(--navy)}
@@ -218,15 +262,15 @@ tbody td strong{color:var(--text);font-weight:600}
 .oc-saldo-disp.zero{color:var(--red)}
 
 /* UF DUAL */
-.uf-block{background:#FFFBEB;border:1px solid #FDE68A;border-radius:var(--rs);padding:12px 16px;margin-top:10px}
-.uf-block .uf-title{font-size:11px;font-weight:700;color:#92400E;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.uf-block{background:var(--warn-bg);border:1px solid var(--warn-bd);border-radius:var(--rs);padding:12px 16px;margin-top:10px}
+.uf-block .uf-title{font-size:11px;font-weight:700;color:var(--warn-tx);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
 .uf-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:12.5px}
-.uf-row .ul{color:#92400E}.uf-row .uv{font-weight:700;font-family:'JetBrains Mono',monospace;color:#78350F}
-.uf-input-row{display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid #FDE68A}
-.uf-input-row label{font-size:12px;font-weight:600;color:#92400E;white-space:nowrap}
-.uf-input-row input{padding:6px 10px;border:1px solid #FDE68A;border-radius:var(--rs);font-family:inherit;font-size:13px;width:130px;background:#FFFDE7;color:#78350F;outline:none}
+.uf-row .ul{color:var(--warn-tx)}.uf-row .uv{font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--warn-tx2)}
+.uf-input-row{display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--warn-bd)}
+.uf-input-row label{font-size:12px;font-weight:600;color:var(--warn-tx);white-space:nowrap}
+.uf-input-row input{padding:6px 10px;border:1px solid var(--warn-bd);border-radius:var(--rs);font-family:inherit;font-size:13px;width:130px;background:var(--warn-bg2);color:var(--warn-tx2);outline:none}
 /* EDIT MODAL */
-.del-confirm{background:#FEF2F2;border:1px solid #FECACA;border-radius:var(--rs);padding:14px 16px;margin-bottom:16px;font-size:13px;color:#991B1B}
+.del-confirm{background:var(--err-bg);border:1px solid var(--err-bd);border-radius:var(--rs);padding:14px 16px;margin-bottom:16px;font-size:13px;color:var(--err-tx)}
 @media(max-width:900px){.stats-grid{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}.form-full{grid-column:1}.chart-row{grid-template-columns:1fr}}
 </style>
 </head>
@@ -265,6 +309,10 @@ tbody td strong{color:var(--text);font-weight:600}
   <div class="topbar">
     <div class="topbar-title" id="page-title">Control Proveedores</div>
     <div class="topbar-actions">
+      <div class="theme-switch" role="group" aria-label="Tema de color">
+        <button type="button" data-theme-opt="dark" onclick="setTheme('dark')" title="Tema oscuro">🌙 Oscuro</button>
+        <button type="button" data-theme-opt="light" onclick="setTheme('light')" title="Tema claro">☀️ Claro</button>
+      </div>
       <div id="auth-bar"></div>
     </div>
   </div>
@@ -361,7 +409,7 @@ tbody td strong{color:var(--text);font-weight:600}
       </div>
     </div>
     <div class="table-wrap">
-      <div class="card-header" style="background:#fff;padding:16px 22px;display:flex;align-items:center;justify-content:space-between">
+      <div class="card-header" style="background:var(--surface);padding:16px 22px;display:flex;align-items:center;justify-content:space-between">
         <h3 style="font-size:14px;font-weight:600;color:var(--navy)">Maestro de Órdenes de Compra</h3>
         <div style="display:flex;gap:8px">
           <button class="btn btn-secondary btn-sm" onclick="openImportModal()">📂 Importar PDF Manager</button>
@@ -398,7 +446,7 @@ tbody td strong{color:var(--text);font-weight:600}
       </div>
     </div>
     <div class="table-wrap">
-      <div class="card-header" style="background:#fff;padding:16px 22px;display:flex;align-items:center;justify-content:space-between">
+      <div class="card-header" style="background:var(--surface);padding:16px 22px;display:flex;align-items:center;justify-content:space-between">
         <h3 style="font-size:14px;font-weight:600;color:var(--navy)">Maestro Facturas / Boletas</h3>
         <button class="btn btn-primary btn-sm" onclick="openFactModal()">➕ Nueva Factura</button>
       </div>
@@ -438,8 +486,8 @@ tbody td strong{color:var(--text);font-weight:600}
       <div class="imp-preview" id="imp-preview">
         <h4>✅ Datos extraídos — revisa antes de guardar</h4>
         <div class="prev-grid" id="prev-grid"></div>
-        <div style="margin-top:10px;padding-top:10px;border-top:1px solid #BBF7D0">
-          <div style="font-size:12px;font-weight:700;color:#065F46;margin-bottom:7px">Ítems detectados</div>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--ok-bd)">
+          <div style="font-size:12px;font-weight:700;color:var(--ok-tx);margin-bottom:7px">Ítems detectados</div>
           <div id="prev-items"></div>
         </div>
       </div>
@@ -452,10 +500,10 @@ tbody td strong{color:var(--text);font-weight:600}
           <div class="form-group"><label>Empresa a facturar (Unidad negocio)</label><input type="text" id="imp-unidad" placeholder="Se extrae del PDF"/></div>
           <div class="form-group"><label>Mail responsable compras</label><input type="email" id="imp-mail" placeholder="compras@empresa.cl"/></div>
         </div>
-        <div id="imp-uf-note" style="display:none;margin-top:10px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:6px;padding:10px 14px;font-size:12px;color:#92400E">
+        <div id="imp-uf-note" style="display:none;margin-top:10px;background:var(--warn-bg);border:1px solid var(--warn-bd);border-radius:6px;padding:10px 14px;font-size:12px;color:var(--warn-tx)">
           ⚠️ Esta OC está expresada en <strong>UF</strong>. El monto mostrado es el valor numérico en UF. Puedes corregirlo manualmente al valor en pesos si lo necesitas.
         </div>
-        <div id="imp-usd-note" style="display:none;margin-top:10px;background:#EAF0FA;border:1px solid #C9D6EE;border-radius:6px;padding:10px 14px;font-size:12px;color:#013186">
+        <div id="imp-usd-note" style="display:none;margin-top:10px;background:var(--info-bg);border:1px solid var(--info-bd);border-radius:6px;padding:10px 14px;font-size:12px;color:var(--info-tx)">
           ⚠️ Esta OC está expresada en <strong>USD (US$)</strong>. El monto mostrado es el valor numérico en dólares. Puedes corregirlo manualmente si lo necesitas.
         </div>
       </div>
@@ -517,26 +565,26 @@ tbody td strong{color:var(--text);font-weight:600}
         </div>
       </div>
       <!-- Campo UF: solo visible si la OC seleccionada es en UF -->
-      <div id="f-uf-row" style="display:none;margin-top:12px;padding:12px 14px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:var(--rs)">
-        <div style="font-size:12px;font-weight:700;color:#92400E;margin-bottom:8px">⚠️ OC en UF — ingresa el monto en UF cobrado en esta factura</div>
+      <div id="f-uf-row" style="display:none;margin-top:12px;padding:12px 14px;background:var(--warn-bg);border:1px solid var(--warn-bd);border-radius:var(--rs)">
+        <div style="font-size:12px;font-weight:700;color:var(--warn-tx);margin-bottom:8px">⚠️ OC en UF — ingresa el monto en UF cobrado en esta factura</div>
         <div style="display:flex;align-items:center;gap:8px">
-          <label style="font-size:12px;font-weight:600;color:#92400E;white-space:nowrap">Monto UF de la factura:</label>
+          <label style="font-size:12px;font-weight:600;color:var(--warn-tx);white-space:nowrap">Monto UF de la factura:</label>
           <input type="number" id="f-valor-uf" placeholder="ej: 766" step="0.0001"
-            style="padding:7px 10px;border:1px solid #FDE68A;border-radius:var(--rs);font-family:inherit;font-size:13px;width:140px;background:#FFFDE7;color:#78350F;outline:none"
+            style="padding:7px 10px;border:1px solid var(--warn-bd);border-radius:var(--rs);font-family:inherit;font-size:13px;width:140px;background:var(--warn-bg2);color:var(--warn-tx2);outline:none"
             oninput="updateSaldoPreview()"/>
         </div>
-        <div style="font-size:11px;color:#92400E;margin-top:6px">Este monto se descuenta directamente del saldo UF de la OC — no afecta los montos en pesos de la factura (Neto / IVA / Total).</div>
+        <div style="font-size:11px;color:var(--warn-tx);margin-top:6px">Este monto se descuenta directamente del saldo UF de la OC — no afecta los montos en pesos de la factura (Neto / IVA / Total).</div>
       </div>
       <!-- Campo USD: solo visible si la OC seleccionada es en USD -->
-      <div id="f-usd-row" style="display:none;margin-top:12px;padding:12px 14px;background:#EAF0FA;border:1px solid #C9D6EE;border-radius:var(--rs)">
-        <div style="font-size:12px;font-weight:700;color:#013186;margin-bottom:8px">⚠️ OC en USD — ingresa el monto en USD cobrado en esta factura</div>
+      <div id="f-usd-row" style="display:none;margin-top:12px;padding:12px 14px;background:var(--info-bg);border:1px solid var(--info-bd);border-radius:var(--rs)">
+        <div style="font-size:12px;font-weight:700;color:var(--info-tx);margin-bottom:8px">⚠️ OC en USD — ingresa el monto en USD cobrado en esta factura</div>
         <div style="display:flex;align-items:center;gap:8px">
-          <label style="font-size:12px;font-weight:600;color:#013186;white-space:nowrap">Monto USD de la factura:</label>
+          <label style="font-size:12px;font-weight:600;color:var(--info-tx);white-space:nowrap">Monto USD de la factura:</label>
           <input type="number" id="f-valor-usd" placeholder="ej: 2988" step="0.01"
-            style="padding:7px 10px;border:1px solid #C9D6EE;border-radius:var(--rs);font-family:inherit;font-size:13px;width:140px;background:#EAF0FA;color:#012364;outline:none"
+            style="padding:7px 10px;border:1px solid var(--info-bd);border-radius:var(--rs);font-family:inherit;font-size:13px;width:140px;background:var(--info-bg);color:var(--info-tx2);outline:none"
             oninput="updateSaldoPreview()"/>
         </div>
-        <div style="font-size:11px;color:#013186;margin-top:6px">Este monto se descuenta directamente del saldo USD de la OC — no afecta los montos en pesos de la factura (Neto / IVA / Total).</div>
+        <div style="font-size:11px;color:var(--info-tx);margin-top:6px">Este monto se descuenta directamente del saldo USD de la OC — no afecta los montos en pesos de la factura (Neto / IVA / Total).</div>
       </div>
       <!-- Saldo OC preview -->
       <div id="f-saldo-preview" style="display:none;margin-top:14px">
@@ -606,24 +654,24 @@ tbody td strong{color:var(--text);font-weight:600}
           </div>
         </div>
         <!-- Campo UF: visible si la OC seleccionada es en UF -->
-        <div id="impf-uf-row" style="display:none;margin-top:12px;padding:12px 14px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:var(--rs)">
-          <div style="font-size:12px;font-weight:700;color:#92400E;margin-bottom:8px">⚠️ OC en UF — ingresa el monto en UF cobrado en esta factura</div>
+        <div id="impf-uf-row" style="display:none;margin-top:12px;padding:12px 14px;background:var(--warn-bg);border:1px solid var(--warn-bd);border-radius:var(--rs)">
+          <div style="font-size:12px;font-weight:700;color:var(--warn-tx);margin-bottom:8px">⚠️ OC en UF — ingresa el monto en UF cobrado en esta factura</div>
           <div style="display:flex;align-items:center;gap:10px">
             <input type="number" id="impf-valor-uf" placeholder="ej: 766" step="0.0001"
-              style="padding:7px 10px;border:1px solid #FDE68A;border-radius:var(--rs);font-family:inherit;font-size:13px;width:150px;background:#FFFDE7;color:#78350F;outline:none"
+              style="padding:7px 10px;border:1px solid var(--warn-bd);border-radius:var(--rs);font-family:inherit;font-size:13px;width:150px;background:var(--warn-bg2);color:var(--warn-tx2);outline:none"
               oninput="updateImpfSaldo()"/>
           </div>
-          <div style="font-size:11px;color:#92400E;margin-top:6px">Este monto se descuenta directamente del saldo UF de la OC — no afecta los montos en pesos de la factura.</div>
+          <div style="font-size:11px;color:var(--warn-tx);margin-top:6px">Este monto se descuenta directamente del saldo UF de la OC — no afecta los montos en pesos de la factura.</div>
         </div>
         <!-- Campo USD: visible si la OC seleccionada es en USD -->
-        <div id="impf-usd-row" style="display:none;margin-top:12px;padding:12px 14px;background:#EAF0FA;border:1px solid #C9D6EE;border-radius:var(--rs)">
-          <div style="font-size:12px;font-weight:700;color:#013186;margin-bottom:8px">⚠️ OC en USD — ingresa el monto en USD cobrado en esta factura</div>
+        <div id="impf-usd-row" style="display:none;margin-top:12px;padding:12px 14px;background:var(--info-bg);border:1px solid var(--info-bd);border-radius:var(--rs)">
+          <div style="font-size:12px;font-weight:700;color:var(--info-tx);margin-bottom:8px">⚠️ OC en USD — ingresa el monto en USD cobrado en esta factura</div>
           <div style="display:flex;align-items:center;gap:10px">
             <input type="number" id="impf-valor-usd" placeholder="ej: 2988" step="0.01"
-              style="padding:7px 10px;border:1px solid #C9D6EE;border-radius:var(--rs);font-family:inherit;font-size:13px;width:150px;background:#EAF0FA;color:#012364;outline:none"
+              style="padding:7px 10px;border:1px solid var(--info-bd);border-radius:var(--rs);font-family:inherit;font-size:13px;width:150px;background:var(--info-bg);color:var(--info-tx2);outline:none"
               oninput="updateImpfSaldo()"/>
           </div>
-          <div style="font-size:11px;color:#013186;margin-top:6px">Este monto se descuenta directamente del saldo USD de la OC — no afecta los montos en pesos de la factura.</div>
+          <div style="font-size:11px;color:var(--info-tx);margin-top:6px">Este monto se descuenta directamente del saldo USD de la OC — no afecta los montos en pesos de la factura.</div>
         </div>
         <!-- Saldo OC preview -->
         <div id="impf-saldo-wrap" style="display:none;margin-top:12px">
@@ -673,11 +721,11 @@ tbody td strong{color:var(--text);font-weight:600}
       <div class="imp-error" id="uf-error"></div>
       <div class="imp-preview" id="uf-preview">
         <h4 id="uf-preview-title">✅ Valores detectados — revisa antes de guardar</h4>
-        <div id="uf-range-warning" style="display:none;margin-bottom:10px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:6px;padding:10px 12px;font-size:12px;color:#92400E"></div>
-        <div style="max-height:260px;overflow-y:auto;border:1px solid #BBF7D0;border-radius:6px;background:#fff">
+        <div id="uf-range-warning" style="display:none;margin-bottom:10px;background:var(--warn-bg);border:1px solid var(--warn-bd);border-radius:6px;padding:10px 12px;font-size:12px;color:var(--warn-tx)"></div>
+        <div style="max-height:260px;overflow-y:auto;border:1px solid var(--ok-bd);border-radius:6px;background:var(--surface)">
           <table style="width:100%;font-size:12px;border-collapse:collapse">
-            <thead style="position:sticky;top:0;background:#F0FDF4">
-              <tr><th style="text-align:left;padding:6px 10px;color:#065F46">Fecha</th><th style="text-align:right;padding:6px 10px;color:#065F46">Valor UF</th></tr>
+            <thead style="position:sticky;top:0;background:var(--ok-bg)">
+              <tr><th style="text-align:left;padding:6px 10px;color:var(--ok-tx)">Fecha</th><th style="text-align:right;padding:6px 10px;color:var(--ok-tx)">Valor UF</th></tr>
             </thead>
             <tbody id="uf-preview-tbody"></tbody>
           </table>
@@ -788,24 +836,24 @@ tbody td strong{color:var(--text);font-weight:600}
           </div>
         </div>
         <!-- Campo UF: visible si la OC seleccionada es en UF -->
-        <div id="impb-uf-row" style="display:none;margin-top:12px;padding:12px 14px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:var(--rs)">
-          <div style="font-size:12px;font-weight:700;color:#92400E;margin-bottom:8px">⚠️ OC en UF — ingresa el monto en UF cobrado en esta boleta</div>
+        <div id="impb-uf-row" style="display:none;margin-top:12px;padding:12px 14px;background:var(--warn-bg);border:1px solid var(--warn-bd);border-radius:var(--rs)">
+          <div style="font-size:12px;font-weight:700;color:var(--warn-tx);margin-bottom:8px">⚠️ OC en UF — ingresa el monto en UF cobrado en esta boleta</div>
           <div style="display:flex;align-items:center;gap:10px">
             <input type="number" id="impb-valor-uf" placeholder="ej: 61.6" step="0.0001"
-              style="padding:7px 10px;border:1px solid #FDE68A;border-radius:var(--rs);font-family:inherit;font-size:13px;width:150px;background:#FFFDE7;color:#78350F;outline:none"
+              style="padding:7px 10px;border:1px solid var(--warn-bd);border-radius:var(--rs);font-family:inherit;font-size:13px;width:150px;background:var(--warn-bg2);color:var(--warn-tx2);outline:none"
               oninput="updateImpbSaldo()"/>
           </div>
-          <div style="font-size:11px;color:#92400E;margin-top:6px">Este monto se descuenta directamente del saldo UF de la OC — no afecta los montos en pesos de la boleta.</div>
+          <div style="font-size:11px;color:var(--warn-tx);margin-top:6px">Este monto se descuenta directamente del saldo UF de la OC — no afecta los montos en pesos de la boleta.</div>
         </div>
         <!-- Campo USD: visible si la OC seleccionada es en USD -->
-        <div id="impb-usd-row" style="display:none;margin-top:12px;padding:12px 14px;background:#EAF0FA;border:1px solid #C9D6EE;border-radius:var(--rs)">
-          <div style="font-size:12px;font-weight:700;color:#013186;margin-bottom:8px">⚠️ OC en USD — ingresa el monto en USD cobrado en esta boleta</div>
+        <div id="impb-usd-row" style="display:none;margin-top:12px;padding:12px 14px;background:var(--info-bg);border:1px solid var(--info-bd);border-radius:var(--rs)">
+          <div style="font-size:12px;font-weight:700;color:var(--info-tx);margin-bottom:8px">⚠️ OC en USD — ingresa el monto en USD cobrado en esta boleta</div>
           <div style="display:flex;align-items:center;gap:10px">
             <input type="number" id="impb-valor-usd" placeholder="ej: 500" step="0.01"
-              style="padding:7px 10px;border:1px solid #C9D6EE;border-radius:var(--rs);font-family:inherit;font-size:13px;width:150px;background:#EAF0FA;color:#012364;outline:none"
+              style="padding:7px 10px;border:1px solid var(--info-bd);border-radius:var(--rs);font-family:inherit;font-size:13px;width:150px;background:var(--info-bg);color:var(--info-tx2);outline:none"
               oninput="updateImpbSaldo()"/>
           </div>
-          <div style="font-size:11px;color:#013186;margin-top:6px">Este monto se descuenta directamente del saldo USD de la OC — no afecta los montos en pesos de la boleta.</div>
+          <div style="font-size:11px;color:var(--info-tx);margin-top:6px">Este monto se descuenta directamente del saldo USD de la OC — no afecta los montos en pesos de la boleta.</div>
         </div>
         <div id="impb-saldo-wrap" style="display:none;margin-top:12px">
           <div class="bbar-wrap">
@@ -864,10 +912,11 @@ tbody td strong{color:var(--text);font-weight:600}
 
 <!-- AUTH OVERLAY -->
 <div id="auth-overlay" style="display:none;position:fixed;inset:0;background:linear-gradient(160deg,rgba(1,49,134,.96),rgba(1,35,100,.98));z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:20px">
-  <div style="background:#fff;border-radius:16px;padding:40px 48px;text-align:center;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3)">
-    <img src="assets/logo-mda-blue.png" alt="MDA Inmobiliaria" style="width:200px;height:auto;margin-bottom:18px">
-    <h2 style="font-size:20px;font-weight:700;color:#012364;margin-bottom:8px">Control Proveedores</h2>
-    <p style="font-size:13px;color:#64748B;margin-bottom:24px">Inicia sesión con tu cuenta Microsoft para acceder al sistema compartido.</p>
+  <div style="background:var(--surface);border-radius:16px;padding:40px 48px;text-align:center;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+    <img class="logo-light-only" src="assets/logo-mda-blue.png" alt="MDA Inmobiliaria" style="width:200px;height:auto;margin-bottom:18px">
+    <img class="logo-dark-only" src="assets/logo-mda-white.png" alt="MDA Inmobiliaria" style="width:200px;height:auto;margin-bottom:18px">
+    <h2 style="font-size:20px;font-weight:700;color:var(--info-tx2);margin-bottom:8px">Control Proveedores</h2>
+    <p style="font-size:13px;color:var(--gray-500);margin-bottom:24px">Inicia sesión con tu cuenta Microsoft para acceder al sistema compartido.</p>
     <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px" onclick="signIn()">
       <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" style="width:16px;height:16px"> &nbsp;Iniciar sesión con Microsoft
     </button>
@@ -875,9 +924,9 @@ tbody td strong{color:var(--text);font-weight:600}
 </div>
 
 <!-- LOADING OVERLAY -->
-<div id="loading-overlay" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,.7);z-index:400;align-items:center;justify-content:center;flex-direction:column;gap:12px">
-  <div style="width:36px;height:36px;border:3px solid #E2E8F0;border-top-color:#013186;border-radius:50%;animation:spin .7s linear infinite"></div>
-  <div style="font-size:13px;color:#64748B;font-weight:600">Sincronizando con SharePoint…</div>
+<div id="loading-overlay" style="display:none;position:fixed;inset:0;background:var(--overlay-light);z-index:400;align-items:center;justify-content:center;flex-direction:column;gap:12px">
+  <div style="width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--info-tx);border-radius:50%;animation:spin .7s linear infinite"></div>
+  <div style="font-size:13px;color:var(--gray-500);font-weight:600">Sincronizando con SharePoint…</div>
 </div>
 
 <!-- NOTIFICATION -->
@@ -1014,9 +1063,33 @@ async function getToken() {
   }
 }
 
+// ══════════════════════════════
+// TEMA DE COLOR (por usuario)
+// ══════════════════════════════
+function themeKey() {
+  return 'mda-theme:' + (currentUser ? (currentUser.username || currentUser.name || 'anon').toLowerCase() : 'anon');
+}
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  document.querySelectorAll('[data-theme-opt]').forEach(b =>
+    b.setAttribute('aria-pressed', b.dataset.themeOpt === t ? 'true' : 'false'));
+}
+function setTheme(t) {
+  applyTheme(t);
+  try { localStorage.setItem(themeKey(), t); localStorage.setItem('mda-theme:last', t); } catch (e) {}
+}
+function loadUserTheme() {
+  let t = null;
+  try { t = localStorage.getItem(themeKey()); } catch (e) {}
+  if (t === 'dark' || t === 'light') setTheme(t);
+  else applyTheme(document.documentElement.getAttribute('data-theme') || 'light');
+}
+document.addEventListener('DOMContentLoaded', loadUserTheme);
+
 function updateAuthUI() {
   const bar = document.getElementById('auth-bar');
   const overlay = document.getElementById('auth-overlay');
+  loadUserTheme();
   if (currentUser) {
     bar.innerHTML = `<span style="font-size:12px;color:var(--gray-500)">👤 ${currentUser.name || currentUser.username}</span>
       <button class="btn btn-secondary btn-sm" onclick="signOut()">Cerrar sesión</button>`;
@@ -1347,8 +1420,8 @@ function fmtOCMonto(oc, n) {
   return fmtCLP(n);
 }
 function ocMonedaBadge(oc) {
-  if (oc.isUSD) return '<span style="font-size:9px;background:#DBEAFE;color:#1E40AF;padding:1px 5px;border-radius:3px;font-weight:700">USD</span>';
-  if (oc.isUF)  return '<span style="font-size:9px;background:#FEF3C7;color:#92400E;padding:1px 5px;border-radius:3px;font-weight:700">UF</span>';
+  if (oc.isUSD) return '<span style="font-size:9px;background:var(--usd-bg);color:var(--usd-tx);padding:1px 5px;border-radius:3px;font-weight:700">USD</span>';
+  if (oc.isUF)  return '<span style="font-size:9px;background:var(--warn-bg3);color:var(--warn-tx);padding:1px 5px;border-radius:3px;font-weight:700">UF</span>';
   return '';
 }
 
@@ -1571,7 +1644,7 @@ function renderMaestroOC() {
         <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--purple)">${usadoDisp}</td>
         <td style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:${saldoColor}">${s.over?'⚠️ ':''} ${saldoDisp}</td>
         <td>${(oc.isUF || oc.isUSD) ? `<button class="btn btn-gold btn-sm" style="font-size:11px;padding:4px 8px" onclick="openAjusteTC('${oc.noc}')" title="Ajuste por diferencia de tipo de cambio (±0,02)">⚖️ TC</button>` : ''}</td>
-        <td><span style="font-size:9px;background:#D1FAE5;color:#065F46;padding:2px 6px;border-radius:4px;font-weight:700">APROBADA</span>${oc.origenPDF?'<span style="font-size:9px;background:#EAF0FA;color:#013186;padding:2px 6px;border-radius:4px;font-weight:700;margin-left:3px">PDF</span>':''} ${ocMonedaBadge(oc)}</td>
+        <td><span style="font-size:9px;background:var(--ok-bg2);color:var(--ok-tx);padding:2px 6px;border-radius:4px;font-weight:700">APROBADA</span>${oc.origenPDF?'<span style="font-size:9px;background:var(--info-bg);color:var(--info-tx);padding:2px 6px;border-radius:4px;font-weight:700;margin-left:3px">PDF</span>':''} ${ocMonedaBadge(oc)}</td>
         <td style="white-space:nowrap">
           <button class="btn btn-secondary btn-sm" onclick="openOCDetail('${oc.noc}')">Ver</button>
           <button class="btn btn-secondary btn-sm" onclick="openEditOC('${oc.noc}')" title="Editar">✏️</button>
@@ -1598,7 +1671,7 @@ function renderMaestroFact() {
   empty.style.display='none';
   tbody.innerHTML = [...data].reverse().map(f => `
     <tr>
-      <td><strong>${f.num}</strong>${f.origenPDF?'<span style="font-size:9px;background:#EAF0FA;color:#013186;padding:1px 5px;border-radius:4px;margin-left:4px;font-weight:700">PDF</span>':''}</td>
+      <td><strong>${f.num}</strong>${f.origenPDF?'<span style="font-size:9px;background:var(--info-bg);color:var(--info-tx);padding:1px 5px;border-radius:4px;margin-left:4px;font-weight:700">PDF</span>':''}</td>
       <td><span style="font-size:11px;color:var(--accent);font-weight:700">${f.ocId||'—'}</span></td>
       <td>${f.proveedor||'—'}</td>
       <td style="font-family:'JetBrains Mono',monospace;font-weight:700">${fmtCLP(f.total)}</td>
@@ -1992,11 +2065,11 @@ function openOCDetail(noc) {
     ? facts.map(f => {
         const monedaLine = oc.isUSD
           ? (f.valorUSD
-              ? `<span style="font-size:10px;color:#013186;background:#DBEAFE;padding:1px 5px;border-radius:3px">${fmtUSD(f.valorUSD)}</span>`
+              ? `<span style="font-size:10px;color:var(--info-tx);background:var(--usd-bg);padding:1px 5px;border-radius:3px">${fmtUSD(f.valorUSD)}</span>`
               : `<span style="font-size:10px;color:var(--gold)">⚠️ Sin monto USD</span>`)
           : oc.isUF
           ? (f.valorUF
-              ? `<span style="font-size:10px;color:#92400E;background:#FEF3C7;padding:1px 5px;border-radius:3px">UF ${fmtUF(f.valorUF)}</span>`
+              ? `<span style="font-size:10px;color:var(--warn-tx);background:var(--warn-bg3);padding:1px 5px;border-radius:3px">UF ${fmtUF(f.valorUF)}</span>`
               : `<span style="font-size:10px;color:var(--gold)">⚠️ Sin monto UF</span>`)
           : '';
         return `
@@ -2291,7 +2364,7 @@ function showImpPreview(d) {
   document.getElementById('prev-grid').innerHTML = fields.map(([l,v]) =>
     `<div class="prev-field"><span class="pl">${l}:</span> <span style="${!v||v.startsWith('⚠️')?'color:var(--gold);font-weight:600':''}">${v}</span></div>`).join('');
   document.getElementById('prev-items').innerHTML = (d.items||[]).map(i =>
-    `<div style="font-size:12px;padding:5px 0;border-bottom:1px solid #BBF7D0;display:flex;justify-content:space-between;gap:12px">
+    `<div style="font-size:12px;padding:5px 0;border-bottom:1px solid var(--ok-bd);display:flex;justify-content:space-between;gap:12px">
       <span>${i.qty} × ${i.desc}</span><span style="font-weight:600">${monedaPre+fmtCLP(i.qty*i.price)}</span>
     </div>`).join('') || '<span style="font-size:12px;color:var(--gray-400)">No se detectaron ítems</span>';
   document.getElementById('imp-preview').classList.add('show');
@@ -2920,7 +2993,7 @@ function renderUFPreview() {
   document.getElementById('uf-preview-title').textContent =
     `✅ Se detectaron ${ufParsedData.length} valor(es) — revisa antes de guardar`;
   document.getElementById('uf-preview-tbody').innerHTML = ufParsedData.map(r => `
-    <tr style="border-bottom:1px solid #DCFCE7">
+    <tr style="border-bottom:1px solid var(--ok-bg3)">
       <td style="padding:5px 10px">${fmt(r.fecha)}</td>
       <td style="padding:5px 10px;text-align:right;font-family:'JetBrains Mono',monospace">${fmtUF(r.valor)}</td>
     </tr>`).join('');
@@ -2997,7 +3070,7 @@ function openAjusteTC(noc) {
     : `aumentar el total en ${fmtM(Math.abs(saldoVal))} (leve excedente por TC)`;
 
   const html = `
-    <div class="del-confirm" style="background:#FFFBEB;border-color:#FDE68A;color:#92400E">
+    <div class="del-confirm" style="background:var(--warn-bg);border-color:var(--warn-bd);color:var(--warn-tx)">
       ⚖️ Este ajuste modifica el <strong>Total ${monedaLabel} de la OC</strong> para absorber la diferencia de redondeo por tipo de cambio.
     </div>
     <div class="form-grid">
